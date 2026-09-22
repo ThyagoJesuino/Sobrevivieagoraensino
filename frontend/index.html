@@ -1,0 +1,456 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Portal Offline — Sobrevivi e Agora Ensino</title>
+
+<style>
+:root{--bg:#0f1115;--panel:#181c22;--panel2:#202630;--text:#f3efe4;--muted:#b9b4a8;--gold:#c7a85b;--line:#343a44;--ok:#87b38d;--warn:#d4a65a;--danger:#cf7777}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:linear-gradient(135deg,#0b0d10,#171a20);color:var(--text);line-height:1.55}
+.wrap{max-width:1180px;margin:auto;padding:22px}
+.hero{
+  display:grid;
+  grid-template-columns: 1fr 320px;
+  gap:28px;
+  align-items:center;
+  padding:34px 28px;
+  border:1px solid #4a412b;
+  background:radial-gradient(circle at 80% 20%,#3b3320 0,#181b20 38%,#111318 72%);
+  border-radius:24px;
+  box-shadow:0 20px 60px #0007;
+}
+.hero-texto{min-width:0}
+.hero-capa img{
+  display:block;
+  width:100%;
+  max-width:320px;
+  border-radius:14px;
+  box-shadow:0 18px 40px #000a;
+  border:1px solid #4a412b;
+}
+
+/* Mobile: capa desce e centraliza */
+@media (max-width:760px){
+  .hero{
+    grid-template-columns:1fr;
+    text-align:left;
+  }
+  .hero-capa{
+    display:flex;
+    justify-content:center;
+  }
+  .hero-capa img{
+    max-width:240px;
+  }
+}
+.eyebrow{color:var(--gold);font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:.78rem}
+h1{font-size:clamp(2rem,5vw,4.2rem);line-height:1;margin:.3rem 0}
+.sub{max-width:760px;color:#d8d2c5;font-size:1.08rem}
+.badge{display:inline-block;margin-top:12px;padding:7px 11px;border:1px solid #6c5b31;border-radius:999px;color:#ead28f}
+.nav{display:flex;gap:8px;flex-wrap:wrap;position:sticky;top:0;z-index:4;padding:12px 0;background:#0f1115e8;backdrop-filter:blur(8px)}
+button,.btn{border:1px solid var(--line);background:var(--panel);color:var(--text);padding:10px 13px;border-radius:12px;cursor:pointer}
+button:hover,.btn:hover{border-color:var(--gold)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px}
+.card h3{margin-top:0}
+.gold{color:var(--gold)}
+section{padding-top:32px}
+.tool{min-height:180px}
+.tool p{color:var(--muted)}
+textarea,input,select{width:100%;background:#101319;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:11px;margin:6px 0 10px}
+textarea{min-height:110px;resize:vertical}
+.result{white-space:pre-wrap;background:#0d1014;border:1px dashed #4b5260;padding:12px;border-radius:10px;min-height:54px}
+.steps{counter-reset:s}
+.step{position:relative;padding-left:48px;margin:18px 0}
+.step:before{counter-increment:s;content:counter(s);position:absolute;left:0;top:0;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:#3c3420;color:#f7df99;font-weight:800}
+.quote{border-left:3px solid var(--gold);padding-left:14px;color:#ddd6c7}
+.small{font-size:.9rem;color:var(--muted)}
+.footer{margin-top:42px;padding:24px 0 40px;color:#8f918f;border-top:1px solid var(--line)}
+.hidden{display:none}
+.tag{font-size:.78rem;border:1px solid #4c5360;border-radius:999px;padding:4px 8px;margin:3px;display:inline-block}
+.check label{display:block;padding:7px 0}
+.check input{width:auto;margin-right:8px}
+.progress{height:12px;background:#0e1116;border-radius:999px;overflow:hidden}
+.bar{height:100%;width:0;background:linear-gradient(90deg,#8e783e,#d3b660)}
+@media(max-width:600px){.wrap{padding:14px}.hero{padding:24px 18px}.nav{position:static}}
+</style>
+
+<style id="visual-livro-portal">
+body{
+  background:
+    linear-gradient(rgba(8,10,13,.82),rgba(10,12,16,.90)),
+    url("img/capa.jpeg") center top / cover no-repeat scroll;
+}
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:-1;
+  background:
+    radial-gradient(circle at 10% 18%,rgba(199,168,91,.12),transparent 24%),
+    radial-gradient(circle at 88% 22%,rgba(199,168,91,.10),transparent 25%),
+    linear-gradient(180deg,rgba(8,10,13,.08),rgba(8,10,13,.55));
+}
+.hero{
+  background:
+    linear-gradient(90deg,rgba(12,14,18,.90),rgba(17,19,23,.72)),
+    radial-gradient(circle at 80% 20%,rgba(59,51,32,.70) 0,rgba(24,27,32,.65) 38%,rgba(17,19,24,.78) 72%) !important;
+  backdrop-filter:blur(3px);
+}
+.card,.result{backdrop-filter:blur(8px)}
+@media(max-width:700px){
+  body{background-attachment:scroll !important;background-position:center top !important;}
+}
+</style>
+
+<style>
+.card-conteudo{
+  background:#101319;border:1px solid #343a44;
+  border-radius:14px;padding:16px;transition:.2s;
+}
+.card-conteudo:hover{border-color:#c7a85b}
+.card-conteudo h3{margin:.4rem 0 .6rem;color:#f3efe4;font-size:1.05rem}
+.card-conteudo p{margin:.4rem 0;color:#b9b4a8;font-size:.92rem;line-height:1.5}
+.card-conteudo time{display:block;margin-top:.6rem;color:#6f6a60;font-size:.75rem}
+.card-conteudo header{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.card-conteudo .tag{background:#3c3420;color:#ead28f;font-size:.72rem;padding:3px 8px;border-radius:999px;border:0}
+.card-conteudo .autor{color:#6f6a60;font-size:.75rem}
+.carregando,.vazio{color:#b9b4a8;font-style:italic}
+.erro{color:#cf7777}
+</style>
+</head>
+
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <div class="hero-texto">
+    <div class="eyebrow">Protótipo navegável • funciona sem internet</div>
+    <h1>Sobrevivi<br><span class="gold">e Agora Ensino</span></h1>
+    <p class="sub">Um portal de orientação prática para observar padrões, recuperar clareza, reconhecer limites e fortalecer autonomia — sem diagnósticos, sem imposições e sem substituir ajuda profissional.</p>
+    <span class="badge">Experiência transformada em ferramenta</span>
+  </div>
+  <div class="hero-capa">
+    <img src="img/capa.jpeg" alt="Capa do livro Sobrevivi e Agora Ensino">
+  </div>
+</header>
+
+<nav class="nav">
+  <button onclick="go('inicio')">Início</button>
+  <button onclick="go('sinais')">Sinais</button>
+  <button onclick="go('ferramentas')" data-apenas-logado>Ferramentas</button>
+  <button onclick="go('reconstrucao')" data-apenas-logado>Reconstrução</button>
+  <button onclick="go('acervo')">Acervo futuro</button>
+  <button onclick="go('sobre')">Sobre</button>
+  <button onclick="go('conteudos-dinamicos')" data-apenas-logado>Conteúdos</button>
+</nav>
+
+<section id="inicio">
+  <h2>Comece pelo que você precisa hoje</h2>
+  <div class="grid">
+    <div class="card"><h3>Estou confuso(a)</h3><p>Organize acontecimentos sem precisar dar um nome clínico ao que está vivendo.</p><button onclick="go('linha')">Montar linha de acontecimentos</button></div>
+    <div class="card"><h3>Não sei se é um padrão</h3><p>Observe repetição, contexto, efeito e resposta — não um episódio isolado.</p><button onclick="go('padroes')">Observar padrões</button></div>
+    <div class="card"><h3>Preciso me reconstruir</h3><p>Transforme uma situação ampla em próximos passos pequenos e verificáveis.</p><button onclick="go('reconstrucao')">Plano de reconstrução</button></div>
+    <div class="card"><h3>Quero apenas ler</h3><p>Uma apresentação curta do propósito do projeto e de sua filosofia.</p><button onclick="go('sobre')">Conhecer o projeto</button></div>
+  </div>
+</section>
+
+<section id="sinais">
+  <h2>Sinais: observar antes de rotular</h2>
+  <p class="quote">A pergunta central não é “qual rótulo define essa pessoa?”, mas “o que está acontecendo repetidamente, que efeito isso produz e existe espaço real para dignidade, discordância, responsabilidade, reparação e limites?”.</p>
+  <div class="grid">
+    <div class="card"><h3>Repetição</h3><p>O mesmo conflito retorna apesar de conversas e promessas?</p></div>
+    <div class="card"><h3>Inversão</h3><p>O assunto original desaparece e você termina defendendo sua própria percepção?</p></div>
+    <div class="card"><h3>Estado de alerta</h3><p>Você precisa medir palavras, antecipar reações ou revisar constantemente o que aconteceu?</p></div>
+    <div class="card"><h3>Autonomia</h3><p>Seus limites, escolhas, recursos ou vínculos seguros estão sendo progressivamente reduzidos?</p></div>
+  </div>
+</section>
+
+<section id="convite-login" data-apenas-deslogado>
+  <div class="card" style="text-align:center;padding:36px;">
+    <h2 style="margin-top:0;">Acesso às ferramentas</h2>
+    <p class="sub" style="margin:8px auto 20px;max-width:640px;">
+      As ferramentas práticas, o plano de reconstrução e os conteúdos do portal
+      ficam disponíveis após o login. Leva menos de um minuto para criar uma conta.
+    </p>
+    <a href="login.html" class="btn" style="margin-right:8px;">Entrar</a>
+    <a href="login.html#cadastro" class="btn">Cadastrar</a>
+  </div>
+</section>
+
+<section id="ferramentas" data-apenas-logado>
+  <h2>Ferramentas práticas</h2>
+  <div class="grid">
+    <div class="card tool" id="linha">
+      <h3>Linha de acontecimentos</h3>
+      <p>Registre fatos separando observação de interpretação.</p>
+      <textarea id="fato" placeholder="O que aconteceu, de forma observável?"></textarea>
+      <textarea id="sentido" placeholder="O que eu interpretei ou senti diante disso?"></textarea>
+      <button onclick="linha()">Organizar registro</button>
+      <div id="linhaR" class="result"></div>
+    </div>
+    <div class="card tool" id="padroes">
+      <h3>Detector de repetição</h3>
+      <p>Não diagnostica. Apenas ajuda a comparar episódios.</p>
+      <input id="ep1" placeholder="Episódio 1">
+      <input id="ep2" placeholder="Episódio 2">
+      <input id="ep3" placeholder="Episódio 3">
+      <button onclick="padrao()">Criar perguntas de comparação</button>
+      <div id="padraoR" class="result"></div>
+    </div>
+    <div class="card tool">
+      <h3>Semáforo de limites</h3>
+      <p>Limite não é controlar a outra pessoa. É reconhecer o que depende de você diante de determinada situação.</p>
+      <select id="limite">
+        <option value="verde">Consigo dizer não sem medo</option>
+        <option value="amarelo">Evito assuntos para impedir conflito</option>
+        <option value="vermelho">Sinto medo de consequências ao estabelecer limites</option>
+      </select>
+      <button onclick="semaforo()">Refletir</button>
+      <div id="semR" class="result"></div>
+    </div>
+    <div class="card tool">
+      <h3>Mensagem para mim mesmo</h3>
+      <textarea id="msg" placeholder="O que eu diria a alguém que amo se estivesse vivendo exatamente isso?"></textarea>
+      <button onclick="espelho()">Virar o espelho</button>
+      <div id="espR" class="result"></div>
+    </div>
+  </div>
+</section>
+
+<section id="reconstrucao" data-apenas-logado>
+  <h2>Reconstrução: do grande problema ao próximo passo</h2>
+  <p class="quote">Receber ajuda e assumir a própria responsabilidade podem caminhar juntos. Ninguém precisa atravessar tudo sozinho.</p>
+  <div class="steps">
+    <div class="step"><b>Estabilizar.</b> Identifique o que precisa de atenção imediata: segurança, moradia, alimentação, trabalho, documentos, filhos ou rede de apoio.</div>
+    <div class="step"><b>Recuperar clareza.</b> Registre fatos e decisões importantes para não depender apenas da memória em períodos de estresse.</div>
+    <div class="step"><b>Recuperar autonomia.</b> Escolha uma área possível de reorganizar agora, em vez de tentar reconstruir a vida inteira de uma vez.</div>
+    <div class="step"><b>Construir continuidade.</b> Pequenas ações repetidas formam uma nova rotina antes de formarem uma nova vida.</div>
+  </div>
+  <div class="card check">
+    <h3>Meu mapa de hoje</h3>
+    <label><input type="checkbox" onchange="prog()"> Tenho uma prioridade concreta para hoje.</label>
+    <label><input type="checkbox" onchange="prog()"> Sei o que ou a quem posso recorrer se precisar de apoio.</label>
+    <label><input type="checkbox" onchange="prog()"> Separei um fato de uma interpretação.</label>
+    <label><input type="checkbox" onchange="prog()"> Escolhi um próximo passo que depende de mim.</label>
+    <div class="progress"><div id="bar" class="bar"></div></div>
+    <p id="pct" class="small">0% do mapa preenchido</p>
+  </div>
+</section>
+
+<section id="acervo" data-apenas-logado>
+  <h2>Laboratório de experiências — área conceitual futura</h2>
+  <p>Esta área demonstra como relatos reais poderão ser preservados para mineração editorial futura sem serem automaticamente publicados.</p>
+  <div class="grid">
+    <div class="card"><h3>1. Registro</h3><span class="tag">acontecimento</span><span class="tag">contexto</span><span class="tag">sensação</span><span class="tag">fala/mensagem</span></div>
+    <div class="card"><h3>2. Separação</h3><span class="tag">fato observável</span><span class="tag">relato</span><span class="tag">interpretação</span><span class="tag">hipótese</span></div>
+    <div class="card"><h3>3. Mineração</h3><span class="tag">padrão</span><span class="tag">tema universal</span><span class="tag">pergunta</span><span class="tag">ferramenta</span></div>
+    <div class="card"><h3>4. Destino</h3><span class="tag">acervo</span><span class="tag">portal</span><span class="tag">obra futura</span><span class="tag">descartar</span></div>
+  </div>
+  <p class="small">Neste protótipo, nenhum dado digitado é enviado para a internet nem salvo permanentemente. Ao fechar a página, os campos podem ser perdidos.</p>
+</section>
+
+<section id="sobre">
+  <h2>O que este portal quer ser</h2>
+  <p>Uma extensão prática do ecossistema <b>Sobrevivi e Agora Ensino</b>: conteúdo acessível, não clínico e inclusivo, construído para transformar experiências particulares em ferramentas de utilidade mais ampla. Embora parte da experiência de origem seja afetiva, a proposta alcança diferentes relações humanas — conjugais, familiares, profissionais, comunitárias, sociais, religiosas ou institucionais — respeitando as diferenças de cada contexto, as crenças e as escolhas individuais, sem determinar ao visitante o que deve fazer.</p>
+  <div class="grid">
+    <div class="card"><h3>Não é tribunal</h3><p>Não existe para declarar culpados ou inocentes.</p></div>
+    <div class="card"><h3>Não é diagnóstico</h3><p>Comportamentos e efeitos podem ser observados sem rotular pessoas.</p></div>
+    <div class="card"><h3>Não é autobiografia</h3><p>Experiências reais podem ser filtradas, neutralizadas e transformadas em ferramentas sem fazer da vida particular de alguém um modelo universal.</p></div>
+    <div class="card"><h3>É uma ponte</h3><p>Entre confusão e clareza; entre experiência e aprendizado; entre reconhecer o que foi vivido, atravessar o que precisa ser atravessado e construir possibilidades de reconstrução.</p></div>
+  </div>
+  <p class="small">Protótipo editorial offline. Este portal é uma ferramenta de reflexão e auto-observação. Não apresenta diagnósticos e não substitui atendimento psicológico, médico, jurídico ou serviços de proteção. Em situações de violência, ameaça ou risco de autoagressão, procure ajuda profissional e serviços de emergência da sua região.</p>
+</section>
+
+<section id="conteudos-dinamicos" data-apenas-logado style="padding-top:32px;">
+  <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+    <h2 style="margin:0;">Conteúdos do Portal</h2>
+    <button id="btn-novo-conteudo" style="border:1px solid var(--gold);background:transparent;color:var(--gold);padding:10px 16px;border-radius:12px;cursor:pointer;font-weight:600;">+ Novo conteúdo</button>
+  </div>
+
+  <form id="form-conteudo" style="display:none;margin-top:18px;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px;">
+    <label class="small">Título</label>
+    <input id="titulo" placeholder="Título do conteúdo">
+
+    <label class="small">Resumo</label>
+    <textarea id="resumo" placeholder="Resumo curto do que você quer registrar"></textarea>
+
+    <label class="small">Tags (separadas por vírgula)</label>
+    <input id="tags" placeholder="ex: padrão, limites, clareza">
+
+    <div style="display:flex;gap:10px;margin-top:10px;">
+      <button type="submit" style="border:1px solid var(--gold);background:var(--gold);color:#0f1115;padding:10px 16px;border-radius:12px;cursor:pointer;font-weight:600;">Salvar</button>
+      <button type="button" id="btn-cancelar" style="border:1px solid var(--line);background:transparent;color:var(--text);padding:10px 16px;border-radius:12px;cursor:pointer;">Cancelar</button>
+    </div>
+  </form>
+
+  <div id="lista-conteudos" class="grid" style="margin-top:18px;"></div>
+</section>
+
+<footer class="footer">Protótipo offline do ecossistema “Sobrevivi e Agora Ensino” • Gerson Silva
+  <br><span class="small">Versão editorial alinhada ao livro — preservada para navegação, avaliação e evolução futura.</span>
+</footer>
+
+</div><!-- /wrap -->
+
+<script>
+function go(id){document.getElementById(id)?.scrollIntoView({behavior:'smooth'});}
+function linha(){
+  let a=document.getElementById('fato').value.trim(),
+      b=document.getElementById('sentido').value.trim();
+  document.getElementById('linhaR').textContent =
+    `FATO OBSERVÁVEL\n${a||'—'}\n\nPERCEPÇÃO / SENTIMENTO\n${b||'—'}\n\nPRÓXIMA PERGUNTA\nO que eu sei, o que estou inferindo e o que ainda precisaria confirmar?`;
+}
+function padrao(){
+  let v=['ep1','ep2','ep3'].map(x=>document.getElementById(x).value.trim()).filter(Boolean);
+  document.getElementById('padraoR').textContent =
+    (v.length ? v.map((x,i)=>`${i+1}. ${x}`).join('\n') : 'Nenhum episódio registrado.') +
+    `\n\nCompare:\n• O que se repete?\n• O que costuma acontecer antes?\n• Como a conversa termina?\n• Qual efeito fica depois?\n• Houve mudança concreta ou apenas promessa?`;
+}
+function semaforo(){
+  let v=document.getElementById('limite').value,
+      m={
+        verde:'Há um sinal de autonomia preservada. Observe se isso permanece também nos assuntos difíceis.',
+        amarelo:'Atenção: evitar assuntos para administrar reações pode indicar desgaste. Observe frequência, contexto e impacto.',
+        vermelho:'Priorize segurança e apoio. Medo de consequências ao estabelecer limites merece atenção séria; em situações de violência, ameaça ou risco, procure ajuda profissional e serviços de proteção adequados à sua região.'
+      };
+  document.getElementById('semR').textContent = m[v];
+}
+function espelho(){
+  let v=document.getElementById('msg').value.trim();
+  document.getElementById('espR').textContent = v
+    ? `Agora leia isso como se tivesse sido escrito para você:\n\n“${v}”`
+    : 'Escreva primeiro o que diria a alguém que você ama.';
+}
+function prog(){
+  let a=[...document.querySelectorAll('.check input')],
+      n=a.filter(x=>x.checked).length,
+      p=Math.round(n/a.length*100);
+  document.getElementById('bar').style.width = p+'%';
+  document.getElementById('pct').textContent = p+'% do mapa preenchido';
+}
+</script>
+
+<script src="js/auth.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const u = (typeof Auth !== 'undefined' && Auth.getUsuario) ? Auth.getUsuario() : null;
+
+  const badge = document.createElement('div');
+  badge.style.cssText = `
+    position:fixed; top:14px; right:14px; z-index:9999;
+    display:flex; gap:10px; align-items:center;
+    background:#181c22; border:1px solid #4a412b;
+    padding:8px 14px; border-radius:999px;
+    font-family:system-ui,sans-serif; color:#f3efe4; font-size:.88rem;
+  `;
+
+  if (u) {
+    badge.innerHTML = `
+      <span>👤 ${u.nome || 'Usuário'}</span>
+      <button id="btn-logout" style="background:transparent;border:1px solid #cf7777;color:#cf7777;border-radius:8px;padding:4px 10px;cursor:pointer;font-size:.8rem;">Sair</button>
+    `;
+    document.body.appendChild(badge);
+    document.getElementById('btn-logout').onclick = () => {
+    Auth.logout();
+    location.reload();
+    };
+  } else {
+    badge.innerHTML = `
+      <a href="login.html" style="color:#c7a85b;text-decoration:none;font-weight:600;">Entrar</a>
+      <a href="login.html#cadastro" style="color:#f3efe4;text-decoration:none;font-weight:600;">Cadastrar</a>
+    `;
+    document.body.appendChild(badge);
+  }
+});
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  const btnNovo = document.getElementById('btn-novo-conteudo');
+  const form = document.getElementById('form-conteudo');
+  const btnCancelar = document.getElementById('btn-cancelar');
+  const lista = document.getElementById('lista-conteudos');
+
+  btnNovo?.addEventListener('click', () => {
+    form.style.display = form.style.display === 'none' ? 'block' : 'none';
+  });
+
+  btnCancelar?.addEventListener('click', () => {
+    form.reset();
+    form.style.display = 'none';
+  });
+
+  async function carregar() {
+    if (typeof Auth === 'undefined' || !Auth.estaLogado || !Auth.estaLogado()) {
+      lista.innerHTML = '<p class="small">Faça login para ver os conteúdos.</p>';
+      return;
+    }
+    try {
+      const r = await Auth.fetchAuth('/conteudos');
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const dados = await r.json();
+      lista.innerHTML = dados.length
+        ? dados.map(c => `
+            <div class="card">
+              <h3>${c.titulo}</h3>
+              <p>${c.resumo || ''}</p>
+              <p class="small">${(c.tags || []).join(' • ')}</p>
+            </div>
+          `).join('')
+        : '<p class="small">Nenhum conteúdo ainda.</p>';
+    } catch (e) {
+      console.error(e);
+      lista.innerHTML = '<p class="small">Erro ao carregar conteúdos.</p>';
+    }
+  }
+
+  form?.addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const body = {
+      titulo: document.getElementById('titulo').value.trim(),
+      resumo: document.getElementById('resumo').value.trim(),
+      tags: document.getElementById('tags').value.split(',').map(t => t.trim()).filter(Boolean),
+    };
+    if (!body.titulo) return alert('Título é obrigatório');
+    try {
+      const r = await Auth.fetchAuth('/conteudos', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      });
+      if (!r.ok) throw new Error('Erro ao salvar');
+      form.reset();
+      form.style.display = 'none';
+      carregar();
+    } catch (e) {
+      alert('Erro ao salvar: ' + e.message);
+    }
+  });
+
+  carregar();
+});
+
+</script>
+
+<script>
+  function aplicarRegrasDeAcesso() {
+    const logado = (typeof Auth !== 'undefined' && Auth.estaLogado) ? Auth.estaLogado() : false;
+
+    document.querySelectorAll('[data-apenas-logado]').forEach(el => {
+      el.style.display = logado ? '' : 'none';
+    });
+
+    document.querySelectorAll('[data-apenas-deslogado]').forEach(el => {
+      el.style.display = logado ? 'none' : '';
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', aplicarRegrasDeAcesso);
+</script>
+
+</body>
+</html>

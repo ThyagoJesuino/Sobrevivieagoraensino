@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Entrar — Portal Sobrevivi e Agora Ensino</title>
+<style>
+  :root{
+    --bg:#0b0d10; --panel:#181c22; --text:#f3efe4; --muted:#b9b4a8;
+    --gold:#c7a85b; --line:#343a44; --danger:#cf7777;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; min-height:100vh; display:grid; place-items:center;
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    background:radial-gradient(circle at 50% 0%,#2a2416 0,#0b0d10 60%);
+    color:var(--text);
+  }
+  .card{
+    width:min(420px, 92vw); padding:32px;
+    background:var(--panel);
+    border:1px solid #4a412b; border-radius:20px;
+    box-shadow:0 30px 80px #0009;
+  }
+  h1{margin:.2rem 0 0; font-size:1.6rem}
+  .eyebrow{
+    color:var(--gold); font-weight:700; letter-spacing:.12em;
+    text-transform:uppercase; font-size:.72rem;
+  }
+  .sub{color:var(--muted); font-size:.92rem; margin-top:6px}
+  label{display:block; margin-top:14px; font-size:.85rem; color:var(--muted)}
+  input{
+    width:100%; padding:12px; margin-top:6px;
+    background:#101319; color:var(--text);
+    border:1px solid var(--line); border-radius:10px;
+    font-size:1rem;
+  }
+  input:focus{outline:none; border-color:var(--gold)}
+  button{
+    width:100%; margin-top:20px; padding:12px;
+    background:var(--gold); color:#1a1408;
+    border:0; border-radius:10px; font-weight:700;
+    font-size:1rem; cursor:pointer;
+  }
+  button:hover{background:#d9bb6d}
+  button:disabled{opacity:.6; cursor:not-allowed}
+  .msg{
+    margin-top:14px; padding:10px 12px; border-radius:10px;
+    font-size:.9rem; display:none;
+  }
+  .msg.erro{background:#3a1e1e; color:#f3c1c1; display:block}
+  .msg.ok{background:#1e3a24; color:#c1f3c9; display:block}
+  .troca{
+    text-align:center; margin-top:18px; color:var(--muted); font-size:.9rem;
+  }
+  .troca a{color:var(--gold); text-decoration:none}
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="eyebrow">Portal Sobrevivi e Agora Ensino</div>
+    <h1 id="titulo">Entrar</h1>
+    <p class="sub" id="subtitulo">Acesse com seu e-mail e senha.</p>
+
+    <form id="form">
+      <div id="campo-nome" style="display:none">
+        <label for="nome">Nome completo</label>
+        <input type="text" id="nome" autocomplete="name">
+      </div>
+
+      <label for="email">E-mail</label>
+      <input type="email" id="email" required autocomplete="email">
+
+      <label for="senha">Senha</label>
+      <input type="password" id="senha" required autocomplete="current-password" minlength="6">
+
+      <button type="submit" id="btn">Entrar</button>
+    </form>
+
+    <div class="msg" id="msg"></div>
+
+    <div class="troca">
+      <span id="texto-troca">Não tem conta?</span>
+      <a href="#" id="link-troca">Cadastre-se</a>
+    </div>
+  </div>
+
+<script>
+const API = 'http://localhost:3000';
+let modo = 'login'; // ou 'cadastro'
+
+const form = document.getElementById('form');
+const campoNome = document.getElementById('campo-nome');
+const titulo = document.getElementById('titulo');
+const subtitulo = document.getElementById('subtitulo');
+const btn = document.getElementById('btn');
+const msg = document.getElementById('msg');
+const linkTroca = document.getElementById('link-troca');
+const textoTroca = document.getElementById('texto-troca');
+
+function mostrarMsg(texto, tipo = 'erro') {
+  msg.textContent = texto;
+  msg.className = 'msg ' + tipo;
+}
+
+function limparMsg() {
+  msg.className = 'msg';
+  msg.textContent = '';
+}
+
+linkTroca.addEventListener('click', (e) => {
+  e.preventDefault();
+  limparMsg();
+  if (modo === 'login') {
+    modo = 'cadastro';
+    titulo.textContent = 'Criar conta';
+    subtitulo.textContent = 'Preencha os dados para se cadastrar.';
+    btn.textContent = 'Cadastrar';
+    campoNome.style.display = 'block';
+    textoTroca.textContent = 'Já tem conta?';
+    linkTroca.textContent = 'Entrar';
+  } else {
+    modo = 'login';
+    titulo.textContent = 'Entrar';
+    subtitulo.textContent = 'Acesse com seu e-mail e senha.';
+    btn.textContent = 'Entrar';
+    campoNome.style.display = 'none';
+    textoTroca.textContent = 'Não tem conta?';
+    linkTroca.textContent = 'Cadastre-se';
+  }
+});
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  limparMsg();
+  btn.disabled = true;
+  btn.textContent = 'Aguarde...';
+
+  const email = document.getElementById('email').value.trim();
+  const senha = document.getElementById('senha').value;
+  const nome = document.getElementById('nome').value.trim();
+
+  try {
+    const url = modo === 'login' ? '/auth/login' : '/auth/register';
+    const body = modo === 'login' ? { email, senha } : { nome, email, senha };
+
+    const r = await fetch(API + url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+
+    const dados = await r.json();
+
+    if (!r.ok) {
+      mostrarMsg(dados.erro || 'Erro ao processar');
+      return;
+    }
+
+    if (modo === 'cadastro') {
+      // Após cadastro, já faz login automático
+      mostrarMsg('Conta criada! Entrando...', 'ok');
+      const r2 = await fetch(API + '/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, senha }),
+      });
+      const login = await r2.json();
+      localStorage.setItem('token', login.token);
+      localStorage.setItem('usuario', JSON.stringify(login.usuario));
+      window.location.href = 'index.html';
+    } else {
+      localStorage.setItem('token', dados.token);
+      localStorage.setItem('usuario', JSON.stringify(dados.usuario));
+      mostrarMsg('Login realizado! Redirecionando...', 'ok');
+      window.location.href = 'index.html';
+    }
+  } catch (err) {
+    mostrarMsg('Erro de conexão com o servidor');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = modo === 'login' ? 'Entrar' : 'Cadastrar';
+  }
+});
+</script>
+</body>
+</html>

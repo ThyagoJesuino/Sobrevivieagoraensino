@@ -1,0 +1,36 @@
+# Dependências
+node_modules/
+backend/node_modules/
+
+# Variáveis de ambiente (contém senhas!)
+.env
+backend/.env
+*.env.local
+
+# Logs
+*.log
+npm-debug.log*
+backend/npm-debug.log*
+
+# Sistema
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editores
+.vscode/
+.idea/
+*.swp
+
+# Credenciais Cloudflare (NUNCA subir)
+*.pem
+*.json
+!package.json
+!package-lock.json
+!tsconfig.json
+
+# Temporários
+*.tmp
+*.bak
+dist/
+build/
